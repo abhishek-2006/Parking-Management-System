@@ -27,40 +27,43 @@ const ForgotPassword = () => {
     };
 
     return (
-        <div className="flex items-center justify-center min-h-screen bg-gradient-to-r from-purple-100 via-purple-200 to-purple-300">
+        <div className="flex items-center justify-center min-h-screen bg-gradient-to-r from-blue-100 via-blue-200 to-blue-300">
         <form
             onSubmit={handleSubmit}
             className="bg-white shadow-lg rounded-xl p-10 w-full max-w-md transform transition duration-500 hover:scale-105"
         >
-            <h2 className="text-3xl font-bold mb-8 text-center text-purple-700">
-            Reset Password
+            <h2 className="text-3xl font-bold mb-8 text-center text-blue-700">
+                Reset Password
             </h2>
 
+             {/* Email Input Field with envelope icon */}
             <div className="mb-6">
-            <label className="block mb-2 font-medium text-gray-700">Email</label>
-            <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-400 transition"
-                required
-            />
+                <i className="fas fa-envelope absolute mt-1.5 text-gray-400"></i>
+                <label className="block mb-2 ml-6 font-medium text-gray-700">Email</label>
+                <input
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 transition"
+                    required
+                />
             </div>
 
-            <div className="mb-8">
-            <label className="block mb-2 font-medium text-gray-700">New Password</label>
-            <input
-                type="password"
-                value={newPassword}
-                onChange={(e) => setNewPassword(e.target.value)}
-                className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-400 transition"
-                required
-            />
+            <div className="mb-6">
+                <i className="fas fa-lock absolute mt-1.5 text-gray-400"></i>   
+                <label className="block mb-2 ml-6 font-medium text-gray-700">New Password</label>
+                <input
+                    type="password"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 transition"
+                    required
+                />
             </div>
 
             <button
             type="submit"
-            className="w-full bg-purple-600 hover:bg-purple-700 text-white font-semibold p-3 rounded-lg shadow-md transition-all duration-300 transform hover:scale-105"
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold p-3 rounded-lg shadow-md transition-all duration-300 transform hover:scale-105"
             >
             Reset Password
             </button>
