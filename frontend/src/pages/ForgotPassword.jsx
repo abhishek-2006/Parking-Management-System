@@ -19,7 +19,7 @@ const ForgotPassword = () => {
         if (!res.ok) return alert(data.message);
 
         alert("Password reset successful!");
-        navigate("/login");
+        navigate("/");
         } catch (err) {
         console.error(err);
         alert("Backend not responding");
@@ -36,7 +36,6 @@ const ForgotPassword = () => {
                 Reset Password
             </h2>
 
-             {/* Email Input Field with envelope icon */}
             <div className="mb-6">
                 <i className="fas fa-envelope absolute mt-1.5 text-gray-400"></i>
                 <label className="block mb-2 ml-6 font-medium text-gray-700">Email</label>
