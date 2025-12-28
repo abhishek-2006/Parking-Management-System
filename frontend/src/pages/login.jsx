@@ -1,10 +1,12 @@
 import { useState } from "react";
+import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import "../index.css";
 
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
@@ -37,6 +39,8 @@ const Login = () => {
     <div className="flex items-center justify-center min-h-screen bg-gradient-to-r from-blue-100 via-blue-200 to-blue-300">
       <form
         onSubmit={handleSubmit}
+        name="login-form"
+        id="login-form"
         className="bg-white shadow-lg rounded-xl p-10 w-full max-w-md transform transition duration-500 hover:scale-105"
       >
         <h2 className="text-3xl font-bold mb-8 text-center text-blue-700">
@@ -44,25 +48,39 @@ const Login = () => {
         </h2>
 
         <div className="mb-6">
-          <label className="block mb-2 font-medium text-gray-700">Email</label>
+          <i className="fas fa-envelope absolute mt-1.5 text-gray-400"></i>
+          <label htmlFor="email" className="block mb-2 ml-6 font-medium text-gray-700">Email</label>
           <input
+            id="email"
             type="email"
+            autoComplete="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 transition"
+            placeholder="Enter Email"
             required
           />
         </div>
 
-        <div className="mb-2">
-          <label className="block mb-2 font-medium text-gray-700">Password</label>
+        <div className="mb-2 relative">
+          <i className="fas fa-lock absolute mt-1.5 text-gray-400"></i>
+          <label htmlFor="password" className="block mb-2 ml-6 font-medium text-gray-700">Password</label>
           <input
-            type="password"
+            id="password"
+            autoComplete="current-password"
+            type={showPassword ? "text" : "password"}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 transition"
+            className="w-full p-3 pr-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 transition"
+            placeholder="Enter Password"
             required
           />
+          <span
+            className="absolute right-3 top-14 -translate-y-1/2 cursor-pointer text-gray-500"
+            onClick={() => setShowPassword(!showPassword)}
+          >
+            {showPassword ? <FaEyeSlash /> : <FaEye />}
+          </span>
         </div>
 
         <div className="mb-8 forgot-password flex justify-end">
