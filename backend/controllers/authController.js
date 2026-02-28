@@ -63,3 +63,31 @@ export const forgotPassword = async (req, res) => {
         res.status(500).json({ message: "Server Error" });
     }
 };
+
+export const resetPassword = async (req, res) => {
+    try {
+        const db = await connectDB();
+        const { email, currentPassword, newPassword } = req.body;
+        if (!email || !currentPassword || !newPassword)
+            return res.status(400).json({
+                message: "Email, Current Password & New password required",
+            });
+        const user = await db.collection("operators").findOne({ email });
+
+        if (!user) return res.status(404).json({ message: "User not found" });
+        if (user.password !== currentPassword)
+            return res.status(401).json({ message: "Invalid Current Password" });
+        if (user.password === newPassword) {
+            return res.status(400).json({
+                success: false,
+                message: "New password cannot be same as current password",
+            });
+        }
+        await db.collection("operators")
+        .updateOne({ email }, { $set: { password: newPassword } });
+        return res.json({ message: "Password reset successfully" });
+    } catch (err) {
+        console.log(err);
+        res.status(500).json({ message: "Server Error" });
+    }
+};
