@@ -1,7 +1,7 @@
 export const getDashboardStats = async (req, res) => {
   try {
     const db = req.app.locals.db;
-
+    const vehiclesCollection = db.collection("vehicles");
     const lot = await db.collection("lots").findOne({ _id: "lot42" });
 
     if (!lot) {
@@ -9,11 +9,7 @@ export const getDashboardStats = async (req, res) => {
     }
 
     const totalCapacity = lot.totalSpaces;
-
-    const occupiedSpaces = await db
-      .collection("vehicles")
-      .countDocuments({ status: "Parked" });
-
+    const occupiedSpaces = await vehiclesCollection.countDocuments({ status: "Parked" });
     const availableSpaces = totalCapacity - occupiedSpaces;
 
     res.json({
@@ -22,7 +18,7 @@ export const getDashboardStats = async (req, res) => {
       availableSpaces,
     });
   } catch (error) {
-    console.error(error);
+    console.error("Error fetching dashboard stats:", error);
     res.status(500).json({ message: "Failed to fetch dashboard stats" });
   }
 };

@@ -3,6 +3,8 @@ import { connectDB } from "./db.js";
 import authRoutes from "./routes/auth.js";
 import dotenv from "dotenv";
 import cors from "cors";
+import { getDashboardStats } from "./controllers/dashboardController.js";
+import parkingRoutes from "./routes/parking.js";
 dotenv.config();
 
 const app = express();
@@ -22,8 +24,8 @@ const PORT = process.env.PORT || 5000;
 connectDB().then((db) => {
     app.locals.db = db;
     const vehiclesCollection = db.collection("vehicles");
-
-    app.use("/api/dashboard", dashboardRoutes);
+    
+    app.use("/api/dashboard", getDashboardStats);
 
     app.get("/api/vehicles", async (req, res) => {
         try {
