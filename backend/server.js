@@ -62,6 +62,8 @@ connectDB().then((db) => {
         }
     });
 
+    app.use("/api", parkingRoutes);
+
     app.get("/", async (req, res) => {
         const collections = await db.listCollections().toArray();   
         res.send({ message: "PMS Backend Running", collections });

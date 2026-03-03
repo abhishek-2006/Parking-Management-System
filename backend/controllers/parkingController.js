@@ -9,9 +9,11 @@ export const getVehicles = async (req, res) => {
 
     const formatted = vehicles.map((v) => {
       let parkedDuration = "N/A";
+      const start = new Date(v.checkInTime);
+      const end = v.status === "Parked" ? now : new Date(v.checkOutTime);
 
-      if (v.status === "Parked" && v.checkInTime) {
-        const diffMs = now - new Date(v.checkInTime);
+      if (v.checkInTime && (v.status === "Parked" || v.checkInTime)) {
+        const diffMs = end - start;
         const hours = Math.floor(diffMs / 3600000);
         const minutes = Math.floor((diffMs % 3600000) / 60000);
         parkedDuration = `${hours}h ${minutes}m`;
@@ -67,18 +69,9 @@ export const checkInVehicle = async (req, res) => {
 export const checkOutVehicle = async (req, res) => {
   try {
     const db = req.app.locals.db;
-    const vehiclesCollection = db.collection("vehicles");
-
     const { id } = req.params;
-
-    const vehicle = await vehiclesCollection.findOne({ _id: new ObjectId(id) });
-
-    if (!vehicle || vehicle.status !== "Parked") {
-      return res.status(404).json({ message: "Vehicle not found or already exited" });
-    }
-
-    await vehiclesCollection.updateOne(
-      { _id: new ObjectId(id) },
+    const result = await db.collection("vehicles").updateOne(
+      { _id: new ObjectId(id), status: "Parked" },
       {
         $set: {
           status: "Exited",
@@ -87,9 +80,13 @@ export const checkOutVehicle = async (req, res) => {
       }
     );
 
+    if (result.matchedCount === 0) {
+      return res.status(404).json({ message: "Vehicle not found or already exited" });
+    }
+
     res.json({ message: "Vehicle checked out successfully" });
   } catch (err) {
-    console.error(err);
+    console.error("Error checking out vehicle:", err);
     res.status(500).json({ message: "Check-out failed" });
   }
 };
