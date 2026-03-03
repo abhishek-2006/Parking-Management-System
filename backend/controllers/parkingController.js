@@ -7,7 +7,11 @@ export const getVehicles = async (req, res) => {
     const now = new Date();
 
     const formatted = vehicles.map((v) => {
-      let parkedDuration = "N/A";
+      if (v.status === "Exited" && v.parkedDuration) {
+        return v;
+      }
+      
+      let parkedDuration = "0h 0m";
 
       if (v.checkInTime) {
         const start = new Date(v.checkInTime);
@@ -89,23 +93,58 @@ export const checkOutVehicle = async (req, res) => {
   try {
     const db = req.app.locals.db;
     const { id } = req.params;
-    const result = await db.collection("vehicles").updateOne(
-      { _id: new ObjectId(id), status: "Parked" },
+
+    // 1. Find the vehicle to get its check-in time
+    const vehicle = await db.collection("vehicles").findOne({ _id: new ObjectId(id) });
+
+    if (!vehicle || vehicle.status !== "Parked") {
+      return res.status(404).json({ message: "Vehicle not found or already exited" });
+    }
+
+    // 2. Calculate the final duration
+    const checkOutTime = new Date();
+    const checkInTime = new Date(vehicle.checkInTime);
+    
+    const diffMs = checkOutTime - checkInTime;
+    const totalHours = Math.max(0.5, Math.ceil(diffMs / 3600000));
+
+    const rates = { Motorcycle: 10, Hatchback: 15, Sedan: 20, SUV: 30, Van: 35, Coupe: 40, Convertible: 80, Truck: 60 };
+    const hourlyRate = rates[vehicle.type] || 20;
+    const totalRevenue = totalHours * hourlyRate;
+
+    const hours = Math.floor(diffMs / 3600000);
+    const minutes = Math.floor((diffMs % 3600000) / 60000);
+    const finalDuration = `${hours}h ${minutes}m`;
+
+    // 3. Update the record with the static duration
+    await db.collection("vehicles").updateOne(
+      { _id: new ObjectId(id) },
       {
         $set: {
           status: "Exited",
-          checkOutTime: new Date()
+          checkOutTime: checkOutTime,
+          parkedDuration: finalDuration,
+          revenue: totalRevenue
         }
       }
     );
 
-    if (result.matchedCount === 0) {
-      return res.status(404).json({ message: "Vehicle not found or already exited" });
-    }
-
-    res.json({ message: "Vehicle checked out successfully" });
+    res.json({ message: "Vehicle checked out successfully", duration: finalDuration });
   } catch (err) {
-    console.error("Error checking out vehicle:", err);
+    console.error(err);
     res.status(500).json({ message: "Check-out failed" });
+  }
+};
+
+export const deleteVehicle = async (req, res) => {
+  try {
+    const db = req.app.locals.db;
+    const { id } = req.params;
+
+    await db.collection("vehicles").deleteOne({ _id: new ObjectId(id) });
+    res.json({ message: "Vehicle record deleted successfully" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Deletion failed" });
   }
 };

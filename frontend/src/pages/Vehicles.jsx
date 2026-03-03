@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { 
     FaSearch, FaEdit, FaCheck, FaTimes, 
-    FaTrashAlt, FaCar, FaClock
+    FaTrashAlt, FaCar, FaClock, FaHistory
 } from "react-icons/fa";
 import Navbar from "../components/Navbar";
 
@@ -51,10 +51,33 @@ const Vehicles = () => {
         }
     };
 
+    const handleCheckout = async (id) => {
+        const vehicle = vehicles.find(v => v._id === id);
+        if (!vehicle) {
+            alert("Vehicle not found");
+            return;
+        }
+        const confirmMessage = `
+            Confirm Checkout for ${vehicle.plate}?
+            -----------------------------
+            Slot: ${vehicle.slot}
+            Total Duration: ${vehicle.parkedDuration}
+        `;
+        
+        if (!window.confirm(confirmMessage)) return;
+        try {
+            const res = await fetch(`http://localhost:5000/api/checkout/${id}`, { method: "PUT" });
+            if (res.ok) fetchVehicles();
+        } catch (err) {
+            console.error(err);
+            alert("Failed to check out vehicle");
+        }
+    };
+
     const handleRemove = async (id) => {
         if (!window.confirm("Are you sure you want to remove this record?")) return;
         try {
-            const res = await fetch(`http://localhost:5000/api/checkout/${id}`, { method: "PUT" });
+            const res = await fetch(`http://localhost:5000/api/delete/${id}`, { method: "DELETE" });
             if (res.ok) fetchVehicles();
         } catch (err) {
             console.error(err);
@@ -127,18 +150,18 @@ const Vehicles = () => {
                         <table className="w-full text-left border-collapse">
                             <thead>
                                 <tr className="bg-white/30 dark:bg-slate-800/30 text-slate-400 text-xs font-black uppercase tracking-widest">
-                                    <th className="px-8 py-6">License Plate</th>
-                                    <th className="px-6 py-6">Slot ID</th>
-                                    <th className="px-6 py-6">Category</th>
-                                    <th className="px-6 py-6">Status</th>
+                                    <th className="px-8 py-6 text-center">License Plate</th>
+                                    <th className="px-6 py-6 text-center">Slot ID</th>
+                                    <th className="px-6 py-6 text-center">Category</th>
+                                    <th className="px-6 py-6 text-center">Status</th>
                                     <th className="px-6 py-6 text-center">Duration</th>
-                                    <th className="px-8 py-6 text-right">Actions</th>
+                                    <th className="px-8 py-6 text-center">Actions</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-white/10 dark:divide-slate-800">
                                 {filteredVehicles.map((v) => (
                                     <tr key={v._id} className="hover:bg-indigo-50/50 dark:hover:bg-indigo-900/10 transition-colors group">
-                                        <td className="px-8 py-6">
+                                        <td className="px-8 py-6 text-center">
                                             {editingId === v._id ? (
                                                 <input 
                                                     className="w-full bg-white dark:bg-slate-800 border-2 border-blue-500 rounded-xl px-3 py-2 outline-none font-black dark:text-white"
@@ -149,7 +172,7 @@ const Vehicles = () => {
                                                 <span className="font-black text-indigo-600 dark:text-cyan-400 text-lg">{v.plate}</span>
                                             )}
                                         </td>
-                                        <td className="px-6 py-6">
+                                        <td className="px-6 py-6 text-center">
                                             {editingId === v._id ? (
                                                 <input 
                                                     className="w-24 bg-white dark:bg-slate-800 border-2 border-blue-500 rounded-xl px-3 py-2 outline-none font-mono font-black dark:text-white"
@@ -157,37 +180,48 @@ const Vehicles = () => {
                                                     onChange={(e) => setEditData({...editData, slot: e.target.value.toUpperCase()})}
                                                 />
                                             ) : (
-                                                <span className="bg-white/50 dark:bg-slate-800 px-4 py-2 rounded-xl text-sm font-mono font-black border border-white/20 dark:border-slate-700 text-slate-700 dark:text-slate-300">
+                                                <span className={`px-4 py-2 rounded-xl text-sm font-mono font-black border 
+                                                    ${v.slot.startsWith('A') 
+                                                    ? "bg-cyan-50 text-cyan-700 border-cyan-100 dark:bg-cyan-900/20 dark:text-cyan-300" 
+                                                    : "bg-purple-50 text-purple-700 border-purple-100 dark:bg-purple-900/20 dark:text-purple-300"
+                                                    }`}
+                                                >
                                                     {v.slot}
                                                 </span>
                                             )}
                                         </td>
-                                        <td className="px-6 py-6">
+                                        <td className="px-6 py-6 text-center">
                                             <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest shadow-sm ${getTypeStyles(v.type)}`}>
                                                 {v.type}
                                             </span>
                                         </td>
-                                        <td className="px-6 py-6">
-                                            <span className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-tighter ${
+                                        <td className="px-6 py-6 text-center">
+                                            <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest ${
                                                 v.status === "Parked" 
-                                                ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300" 
-                                                : "bg-rose-100 text-rose-700 dark:bg-rose-900/40 dark:text-rose-300"
+                                                ? "bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300"
+                                                : "bg-red-100 text-red-700 dark:bg-red-800 dark:text-red-300"
                                             }`}>
-                                                <span className={`w-1.5 h-1.5 rounded-full ${v.status === "Parked" ? "bg-emerald-500 animate-pulse" : "bg-rose-500"}`}></span>
                                                 {v.status}
                                             </span>
                                         </td>
-                                        <td className="px-6 py-6 text-center font-bold text-slate-500 dark:text-slate-400 text-sm">
-                                        {v.parkedDuration && v.parkedDuration !== "N/A" ? (
-                                            <div className="flex items-center justify-center gap-2">
-                                            <FaClock className="text-indigo-400 dark:text-cyan-500/50" />
-                                            <span>{v.parkedDuration}</span>
+                                        <td className="px-6 py-6 text-center">
+                                            <div className={`flex items-center justify-center gap-2 font-black text-sm ${
+                                                v.status === "Parked" 
+                                                ? "text-indigo-600 dark:text-cyan-400" 
+                                                : "text-slate-400 dark:text-slate-500"
+                                            }`}>
+                                                {v.status === "Parked" ? (
+                                                <FaClock className="animate-pulse text-emerald-500" />
+                                                ) : (
+                                                <FaHistory className="opacity-70" />
+                                                )}
+                                                
+                                                <span>
+                                                {v.parkedDuration || "0h 0m"}
+                                                </span>
                                             </div>
-                                        ) : (
-                                            <span className="opacity-30">--</span>
-                                        )}
                                         </td>
-                                        <td className="px-8 py-6 text-right">
+                                        <td className="px-8 py-6 text-center">
                                             <div className="flex justify-end gap-3">
                                                 {editingId === v._id ? (
                                                     <>
@@ -212,6 +246,14 @@ const Vehicles = () => {
                                                             title="Edit Details"
                                                         >
                                                             <FaEdit size={18} />
+                                                        </button>
+                                                        {/*Checkout Button*/}
+                                                        <button
+                                                            onClick={() => handleCheckout(v._id)}
+                                                            className="p-3 text-green-500 hover:bg-green-50 dark:hover:bg-green-900/20 rounded-xl transition-all"
+                                                            title="Check Out Vehicle"
+                                                        >
+                                                            <FaCheck size={18} />
                                                         </button>
                                                         <button 
                                                             onClick={() => handleRemove(v._id)} 

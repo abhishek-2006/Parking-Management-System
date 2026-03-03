@@ -1,5 +1,5 @@
 import React, { useEffect, useState  } from "react";
-import { FaCar, FaParking, FaCheckCircle, FaPlus, FaSearch, FaTimes } from "react-icons/fa";
+import { FaCar, FaParking, FaCheckCircle, FaPlus, FaSearch, FaTimes, FaMoneyBillWave } from "react-icons/fa";
 import Navbar from "../components/Navbar.jsx";
 
 const Dashboard = () => {
@@ -73,7 +73,19 @@ const Dashboard = () => {
   };
 
   const handleCheckOut = async (id) => {
-    if (!window.confirm("Confirm check-out for this vehicle?")) return;
+    const vehicle = vehicles.find(v => v._id === id);
+    if (!vehicle) {
+      alert("Vehicle not found");
+      return;
+    }
+    const confirmMessage = `
+      Confirm Checkout for ${vehicle.plate}?
+      -----------------------------
+      Slot: ${vehicle.slot}
+      Total Duration: ${vehicle.parkedDuration}
+    `;
+    
+    if (!window.confirm(confirmMessage)) return;
     try {
       const res = await fetch(`http://localhost:5000/api/checkout/${id}`, {
         method: "PUT",
@@ -88,10 +100,6 @@ const Dashboard = () => {
       alert("Server error during check-out");
     }
   };
-
-  const occupancyPercent = stats.totalCapacity
-    ? Math.round((stats.occupied / stats.totalCapacity) * 100)
-    : 0;
 
   const statCards = [
     { label: "Total Capacity", value: stats.totalCapacity, icon: <FaParking />, color: "bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600", border: "border-indigo-200 dark:border-indigo-800" },
@@ -136,22 +144,14 @@ const Dashboard = () => {
             </div>
           ))}
 
-          {/* Occupancy Progress Card */}
-          <div className="bg-white dark:bg-slate-900 border border-gray-100 dark:border-slate-800 rounded-2xl p-6 shadow-sm">
-            <div className="flex justify-between items-center mb-4">
-              <span className="text-sm font-bold text-gray-700 dark:text-gray-300">Occupancy</span>
-              <span className="text-blue-600 font-bold">{occupancyPercent}%</span>
+          {/* Earnings Card */}
+          <div className="glass-card rounded-[2.5rem] p-8 border-l-8 border-l-amber-500 shadow-amber-100 dark:shadow-none">
+            <div className="flex justify-between items-center mb-6">
+              <FaMoneyBillWave className="text-4xl text-amber-500" />
+              <span className="text-xs font-black text-slate-400 uppercase tracking-widest">Earnings</span>
             </div>
-            <div className="w-full bg-gray-100 dark:bg-slate-800 rounded-full h-3 mb-4">
-              <div
-                className={`h-3 rounded-full transition-all duration-1000 ${
-                  occupancyPercent > 80 ? "bg-red-500" : occupancyPercent > 50 ? "bg-yellow-500" : "bg-green-500"
-                }`}
-                style={{ width: `${occupancyPercent}%` }}
-              ></div>
-            </div>
-            <p className="text-xs text-gray-400 font-medium italic underline decoration-blue-200">
-              Live parking capacity meter
+            <p className="text-5xl font-black text-slate-900 dark:text-white tracking-tighter">
+              ₹{vehicles.reduce((acc, v) => acc + (v.revenue || 0), 0)}
             </p>
           </div>
         </div>
@@ -176,9 +176,9 @@ const Dashboard = () => {
             <table className="w-full">
               <thead className="text-slate-400 text-xs font-black uppercase tracking-widest">
                 <tr>
-                  <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">License Plate</th>
-                  <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Slot ID</th>
-                  <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Type</th>
+                  <th className="px-6 py-4 text-center text-xs font-bold text-gray-500 uppercase tracking-wider">License Plate</th>
+                  <th className="px-6 py-4 text-center text-xs font-bold text-gray-500 uppercase tracking-wider">Slot ID</th>
+                  <th className="px-6 py-4 text-center text-xs font-bold text-gray-500 uppercase tracking-wider">Type</th>
                   <th className="px-6 py-4 text-center text-xs font-bold text-gray-500 uppercase tracking-wider">Parked Duration</th>
                   <th className="px-6 py-4 text-center text-xs font-bold text-gray-500 uppercase tracking-wider">Status</th>
                   <th className="px-6 py-4 text-center text-xs font-bold text-gray-500 uppercase tracking-wider">Actions</th>
@@ -187,13 +187,13 @@ const Dashboard = () => {
               <tbody className="divide-y divide-white/10 dark:divide-slate-800">
                 {vehicles.filter(v => v.status === "Parked").map((v) => (
                   <tr key={v._id} className="hover:bg-blue-50/30 dark:hover:bg-blue-900/10 transition-colors group">
-                    <td className="px-8 py-4 font-bold text-gray-900 dark:text-white">{v.plate}</td>
-                    <td className="px-8 py-4">
+                    <td className="px-8 py-4 text-center font-bold text-gray-900 dark:text-white">{v.plate}</td>
+                    <td className="px-8 py-4 text-center">
                       <span className="bg-white/50 dark:bg-slate-800 text-gray-700 dark:text-gray-300 px-4 py-2 rounded-xl text-sm font-mono border border-white/20 dark:border-slate-700">
                         {v.slot}
                       </span>
                     </td>
-                    <td className="px-6 py-6">
+                    <td className="px-6 py-6 text-center">
                       <span className="text-xs font-semibold px-2 py-1 bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 rounded-full">
                         {v.type}
                       </span>
@@ -306,7 +306,7 @@ const Dashboard = () => {
               >
                 {loading ? (
                   <span className="flex items-center gap-2">
-                    <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <svg className="animate-spin h-5 w-5 text-white text-center" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                     </svg>

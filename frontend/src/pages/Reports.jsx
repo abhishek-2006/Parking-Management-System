@@ -1,132 +1,206 @@
+import { useEffect, useState } from "react";
+import { 
+    FaDownload, FaSearch, FaCarSide, FaClock, FaWallet, 
+    FaArrowUp, FaArrowDown, FaChartLine, FaHistory, FaCheckCircle
+} from "react-icons/fa";
 import Navbar from "../components/Navbar";
-import { FaDownload, FaFilter, FaChartPie, FaCarSide, FaCheckCircle, FaClock, FaArrowUp, FaArrowDown } from "react-icons/fa";
 
 const Reports = () => {
-  // Static data for UI representation
-  const reports = [
-    { id: 1, plate: "GJ-05-HK-2211", entry: "10:15 AM", exit: "1:10 PM", duration: "2h 55m", status: "Completed" },
-    { id: 2, plate: "MH-12-AB-5555", entry: "10:40 AM", exit: "-", duration: "In Parking", status: "Active" },
-    { id: 3, plate: "DL-02-KL-9090", entry: "11:00 AM", exit: "01:30 PM", duration: "2h 30m", status: "Completed" },
-  ];
+  const [reports, setReports] = useState([]);
+  const [filteredReports, setFilteredReports] = useState([]);
+  const [stats, setStats] = useState({ total: 0, active: 0, completed: 0, revenue: 0, todayRevenue: 0 });
+  
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("All");
+
+  const fetchData = async () => {
+    try {
+      const res = await fetch("http://localhost:5000/api/vehicles");
+      if (!res.ok) throw new Error("Failed to fetch");
+      const data = await res.json();
+      setReports(data);
+      setFilteredReports(data);
+      
+      // Advanced Analytics Calculation
+      const totalRev = data.reduce((acc, v) => acc + (v.revenue || 0), 0);
+      const today = new Date().toLocaleDateString();
+      const todayRev = data
+        .filter(v => v.checkOutTime && new Date(v.checkOutTime).toLocaleDateString() === today)
+        .reduce((acc, v) => acc + (v.revenue || 0), 0);
+
+      setStats({
+        total: data.length,
+        active: data.filter(v => v.status === "Parked").length,
+        completed: data.filter(v => v.status === "Exited").length,
+        revenue: totalRev,
+        todayRevenue: todayRev
+      });
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  useEffect(() => { fetchData(); }, []);
+
+  useEffect(() => {
+    const filtered = reports.filter(r => {
+      const matchesSearch = r.plate.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesStatus = statusFilter === "All" || r.status === statusFilter;
+      return matchesSearch && matchesStatus;
+    });
+    setFilteredReports(filtered);
+  }, [searchTerm, statusFilter, reports]);
+
+  const exportToCSV = () => {
+    if (filteredReports.length === 0) return alert("No data to export");
+    const headers = ["License Plate", "Slot", "Type", "Status", "Revenue", "Check-In", "Check-Out", "Duration"];
+    const rows = filteredReports.map(r => [
+      r.plate, r.slot, r.type, r.status, `₹${r.revenue || 0}`,
+      new Date(r.checkInTime).toLocaleString(),
+      r.checkOutTime ? new Date(r.checkOutTime).toLocaleString() : "N/A",
+      r.parkedDuration || "N/A"
+    ]);
+    const csvContent = [headers, ...rows].map(e => e.join(",")).join("\n");
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `Parkman_Revenue_Report_${new Date().toISOString().split('T')[0]}.csv`;
+    link.click();
+  };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-teal-50 via-cyan-50 to-blue-50/50">
+    <div className="colorful-bg min-h-screen transition-colors duration-500 pb-12">
       <Navbar />
 
-      <main className="max-w-7xl mx-auto p-6 animate-in fade-in duration-700">
-
-        {/* Header with improved typography and breadcrumb feel */}
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-4">
-          <div>
-            <h1 className="text-4xl font-extrabold text-slate-900 tracking-tight">System Analytics</h1>
-            <p className="text-slate-500 font-medium mt-1">
-              Real-time insights and historical performance tracking
-            </p>
+      <main className="max-w-7xl mx-auto px-6 pt-8 animate-in fade-in duration-700">
+        {/* Header Section */}
+        <div className="flex flex-col md:flex-row justify-between items-end mb-10 gap-6">
+          <div className="flex items-center gap-5">
+            <div className="p-4 bg-white dark:bg-slate-800 rounded-3xl shadow-lg border border-indigo-100 dark:border-slate-700">
+                <img src="/src/assets/favicon.png" alt="Logo" className="w-12 h-12" />
+            </div>
+            <div>
+              <h1 className="text-4xl font-black bg-gradient-to-r from-indigo-600 to-blue-500 bg-clip-text text-transparent">
+                Financial Analytics
+              </h1>
+              <p className="text-slate-500 dark:text-slate-400 font-bold tracking-widest uppercase text-xs flex items-center gap-2">
+                <FaChartLine className="text-indigo-500" /> Revenue & Occupancy Insights
+              </p>
+            </div>
           </div>
 
-          <div className="flex gap-3">
-            <button className="flex items-center gap-2 bg-white/70 backdrop-blur-sm border border-slate-200 px-4 py-2.5 rounded-xl font-bold text-slate-700 shadow-sm hover:bg-white transition-all">
-              <FaFilter className="text-cyan-600" /> Advanced Filters
-            </button>
-            <button className="flex items-center gap-2 bg-gradient-to-r from-cyan-600 to-blue-600 text-white px-5 py-2.5 rounded-xl font-bold hover:from-cyan-700 hover:to-blue-700 shadow-lg shadow-cyan-200/50 transition-all active:scale-95">
-              <FaDownload /> Export Dataset
-            </button>
+          <button onClick={exportToCSV} className="bg-gradient-to-r from-indigo-600 to-blue-600 text-white px-8 py-4 rounded-2xl font-black shadow-xl shadow-indigo-200 dark:shadow-none hover:scale-105 transition-all active:scale-95 flex items-center gap-2">
+            <FaDownload /> EXPORT FINANCIALS
+          </button>
+        </div>
+
+        {/* Dynamic Stats Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12">
+          <div className="glass-card rounded-[2rem] p-6 border-l-4 border-l-indigo-500">
+            <div className="flex justify-between items-start mb-2">
+                <FaWallet className="text-indigo-500 text-2xl" />
+            </div>
+            <h3 className="text-slate-400 text-[10px] font-black uppercase tracking-tighter">Total Revenue</h3>
+            <p className="text-3xl font-black dark:text-white">₹{stats.revenue}</p>
+          </div>
+
+          <div className="glass-card rounded-[2rem] p-6 border-l-4 border-l-emerald-500">
+            <div className="flex justify-between items-start mb-2">
+                <FaHistory className="text-emerald-500 text-2xl" />
+                <span className="text-[10px] font-black bg-emerald-100 text-emerald-700 px-2 py-1 rounded-lg">LIVE</span>
+            </div>
+            <h3 className="text-slate-400 text-[10px] font-black uppercase tracking-tighter">Today's Earnings</h3>
+            <p className="text-3xl font-black dark:text-white">₹{stats.todayRevenue}</p>
+          </div>
+
+          <div className="glass-card rounded-[2rem] p-6 border-l-4 border-l-blue-500">
+            <div className="flex justify-between items-start mb-2">
+                <FaCarSide className="text-blue-500 text-2xl" />
+                <span className="text-[10px] font-black bg-slate-100 dark:bg-slate-800 text-slate-500 px-2 py-1 rounded-lg">CURRENT</span>
+            </div>
+            <h3 className="text-slate-400 text-[10px] font-black uppercase tracking-tighter">Active Sessions</h3>
+            <p className="text-3xl font-black dark:text-white">{stats.active}</p>
+          </div>
+
+          <div className="glass-card rounded-[2rem] p-6 border-l-4 border-l-rose-500">
+            <div className="flex justify-between items-start mb-2">
+                <FaCheckCircle className="text-rose-500 text-2xl" />
+            </div>
+            <h3 className="text-slate-400 text-[10px] font-black uppercase tracking-tighter">Completed</h3>
+            <p className="text-3xl font-black dark:text-white">{stats.completed}</p>
           </div>
         </div>
 
-        {/* Stats Cards with comparative trends */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
-          <div className="p-6 bg-white rounded-3xl border border-slate-100 shadow-xl shadow-slate-200/50 hover:scale-[1.02] transition-transform">
-            <div className="flex items-center justify-between mb-4">
-              <div className="p-3 bg-blue-50 rounded-2xl">
-                <FaCarSide className="text-blue-600 text-2xl" />
-              </div>
-              <span className="flex items-center gap-1 text-emerald-600 text-xs font-bold bg-emerald-50 px-2 py-1 rounded-lg">
-                <FaArrowUp /> 12%
-              </span>
-            </div>
-            <h3 className="font-bold text-slate-500 text-sm uppercase tracking-wider">Total Daily Volume</h3>
-            <p className="text-4xl font-black mt-1 text-slate-900">128</p>
+        {/* Advanced Filters */}
+        <div className="glass-card rounded-[2rem] p-4 mb-8 flex flex-col md:flex-row gap-4">
+          <div className="relative flex-grow">
+            <FaSearch className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400" />
+            <input 
+              type="text" placeholder="Filter by plate number..."
+              className="w-full pl-14 pr-6 py-4 bg-white/40 dark:bg-slate-800/40 rounded-2xl outline-none font-bold dark:text-white border-none focus:ring-2 focus:ring-indigo-500 transition-all"
+              value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)}
+            />
           </div>
-
-          <div className="p-6 bg-white rounded-3xl border border-slate-100 shadow-xl shadow-slate-200/50 hover:scale-[1.02] transition-transform">
-            <div className="flex items-center justify-between mb-4">
-              <div className="p-3 bg-cyan-50 rounded-2xl">
-                <FaChartPie className="text-cyan-600 text-2xl" />
-              </div>
-              <span className="flex items-center gap-1 text-rose-500 text-xs font-bold bg-rose-50 px-2 py-1 rounded-lg">
-                <FaArrowDown /> 4%
-              </span>
-            </div>
-            <h3 className="font-bold text-slate-500 text-sm uppercase tracking-wider">Current Occupancy</h3>
-            <p className="text-4xl font-black mt-1 text-slate-900">46</p>
-          </div>
-
-          <div className="p-6 bg-white rounded-3xl border border-slate-100 shadow-xl shadow-slate-200/50 hover:scale-[1.02] transition-transform">
-            <div className="flex items-center justify-between mb-4">
-              <div className="p-3 bg-emerald-50 rounded-2xl">
-                <FaCheckCircle className="text-emerald-600 text-2xl" />
-              </div>
-              <span className="text-xs font-bold text-slate-400 bg-slate-50 px-2 py-1 rounded-lg">Target: 100</span>
-            </div>
-            <h3 className="font-bold text-slate-500 text-sm uppercase tracking-wider">Check-outs Today</h3>
-            <p className="text-4xl font-black mt-1 text-slate-900">82</p>
-          </div>
+          <select 
+            className="px-8 py-4 bg-white/40 dark:bg-slate-800/40 rounded-2xl outline-none font-bold dark:text-white cursor-pointer border-none focus:ring-2 focus:ring-indigo-500"
+            value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}
+          >
+            <option value="All">All Transactions</option>
+            <option value="Parked">Active Sessions</option>
+            <option value="Exited">Settled Payments</option>
+          </select>
         </div>
 
-        {/* Reports Table with glassmorphism header */}
-        <div className="bg-white/80 backdrop-blur-md rounded-[2.5rem] shadow-2xl shadow-slate-200/60 border border-white overflow-hidden">
+        {/* Data Table */}
+        <div className="glass-card rounded-[3rem] overflow-hidden border-none shadow-2xl">
           <div className="overflow-x-auto">
-            <table className="w-full border-separate border-spacing-0">
+            <table className="w-full text-center">
               <thead>
-                <tr className="bg-slate-50/50">
-                  <th className="px-8 py-5 text-left text-slate-500 text-xs font-bold uppercase tracking-widest border-b">License Plate</th>
-                  <th className="px-6 py-5 text-left text-slate-500 text-xs font-bold uppercase tracking-widest border-b">Check-In</th>
-                  <th className="px-6 py-5 text-left text-slate-500 text-xs font-bold uppercase tracking-widest border-b">Check-Out</th>
-                  <th className="px-6 py-5 text-left text-slate-500 text-xs font-bold uppercase tracking-widest border-b">Stay Duration</th>
-                  <th className="px-8 py-5 text-left text-slate-500 text-xs font-bold uppercase tracking-widest border-b">Status</th>
+                <tr className="bg-white/30 dark:bg-slate-800/30 text-slate-400 text-[10px] font-black uppercase tracking-[0.2em]">
+                  <th className="px-8 py-6">License Plate</th>
+                  <th className="px-6 py-6">Timeline</th>
+                  <th className="px-6 py-6">Duration</th>
+                  <th className="px-8 py-6">Revenue</th>
+                  <th className="px-8 py-6">Status</th>
                 </tr>
               </thead>
-
-              <tbody className="divide-y divide-slate-100">
-                {reports.map(r => (
-                  <tr key={r.id} className="group hover:bg-cyan-50/30 transition-all">
-                    <td className="px-8 py-5 font-bold text-slate-900 text-lg group-hover:text-cyan-700 transition-colors">
-                      {r.plate}
+              <tbody className="divide-y divide-white/10 dark:divide-slate-800">
+                {filteredReports.map(r => (
+                  <tr key={r._id} className="hover:bg-indigo-50/50 dark:hover:bg-indigo-900/10 transition-colors group">
+                    <td className="px-8 py-6">
+                        <span className="font-black text-indigo-600 dark:text-cyan-400 text-lg block">{r.plate}</span>
+                        <span className="text-[10px] text-slate-400 font-bold uppercase">{r.type}</span>
                     </td>
-                    <td className="px-6 py-5 text-slate-600 font-medium">{r.entry}</td>
-                    <td className="px-6 py-5 text-slate-600 font-medium">{r.exit}</td>
-                    <td className="px-6 py-5">
-                      <div className="flex items-center gap-2 text-slate-700 font-bold">
-                        <FaClock className="text-slate-300 group-hover:text-cyan-500 transition-colors" />
-                        {r.duration}
+                    <td className="px-6 py-6">
+                        <div className="text-xs font-bold text-slate-600 dark:text-slate-300">
+                            {new Date(r.checkInTime).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})} 
+                            <span className="mx-2 text-slate-300">→</span>
+                            {r.checkOutTime ? new Date(r.checkOutTime).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : "..."}
+                        </div>
+                    </td>
+                    <td className="px-6 py-6 font-black text-slate-700 dark:text-slate-200 text-xs">
+                      <div className="flex items-center justify-center gap-2">
+                        <FaClock className={r.status === 'Parked' ? 'text-emerald-500 animate-pulse' : 'text-slate-300'} />
+                        {r.parkedDuration || "Running"}
                       </div>
                     </td>
-                    <td className="px-8 py-5">
-                      {r.status === "Completed" ? (
-                        <span className="inline-flex items-center gap-1.5 bg-emerald-50 text-emerald-700 px-4 py-1.5 text-xs font-bold rounded-full border border-emerald-100 shadow-sm">
-                          <FaCheckCircle className="text-[10px]" /> Finished
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center gap-1.5 bg-blue-50 text-blue-700 px-4 py-1.5 text-xs font-bold rounded-full border border-blue-100 shadow-sm">
-                          <span className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-pulse"></span>
-                          In Progress
-                        </span>
-                      )}
+                    <td className="px-8 py-6">
+                      <span className={`text-lg font-black ${r.revenue > 0 ? "text-emerald-600" : "text-slate-300"}`}>
+                        ₹{r.revenue || 0}
+                      </span>
+                    </td>
+                    <td className="px-8 py-6">
+                      <span className={`px-4 py-2 text-[9px] font-black uppercase rounded-full tracking-tighter ${r.status === 'Exited' ? 'bg-emerald-100 text-emerald-700' : 'bg-blue-100 text-blue-700'}`}>
+                        {r.status === 'Exited' ? 'Settled' : 'Active'}
+                      </span>
                     </td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
-
-          <div className="p-8 bg-slate-50/50 border-t border-slate-100 flex justify-center">
-            <button className="px-8 py-3 bg-white border border-slate-200 rounded-2xl text-sm font-extrabold text-cyan-600 hover:text-cyan-700 hover:border-cyan-300 hover:shadow-md transition-all">
-              Generate Detailed PDF Report
-            </button>
-          </div>
         </div>
-
       </main>
     </div>
   );

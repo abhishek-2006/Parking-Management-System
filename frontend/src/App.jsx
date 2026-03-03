@@ -1,5 +1,7 @@
 "use client";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { useEffect } from "react";
+import { getInitialTheme, toggleTheme } from "./utils/theme.js";
 import Login from "./pages/login";
 import Dashboard from "./pages/dashboard";
 import ForgotPassword from "./pages/ForgotPassword";
@@ -8,6 +10,10 @@ import Reports from "./pages/Reports.jsx";
 import Settings from "./pages/Settings.jsx";
 
 function App() {
+  useEffect(() => {
+    toggleTheme(getInitialTheme());
+  }, []);
+
   return (
     <BrowserRouter>
       <Routes>
