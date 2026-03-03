@@ -31,8 +31,8 @@ const Login = () => {
     <div className="flex items-center justify-center min-h-screen bg-gradient-to-r from-teal-50 via-cyan-100 to-blue-200 relative overflow-hidden">
       
       {/* Decorative soft glowing orbs for depth */}
-            <div className="absolute top-[-10%] right-[-10%] w-80 h-80 bg-emerald-200 rounded-full blur-3xl opacity-30"></div>
-            <div className="absolute bottom-[-10%] left-[-10%] w-96 h-96 bg-blue-200 rounded-full blur-3xl opacity-30"></div>
+      <div className="absolute top-[-10%] right-[-10%] w-80 h-80 bg-emerald-200 rounded-full blur-3xl opacity-30"></div>
+      <div className="absolute bottom-[-10%] left-[-10%] w-96 h-96 bg-blue-200 rounded-full blur-3xl opacity-30"></div>
 
       <form
         onSubmit={handleSubmit}

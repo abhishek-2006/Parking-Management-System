@@ -1,28 +1,29 @@
 import { ObjectId } from "mongodb";
+
 export const getVehicles = async (req, res) => {
   try {
     const db = req.app.locals.db;
-    const vehiclesCollection = db.collection("vehicles");
-
-    const vehicles = await vehiclesCollection.find().toArray();
+    const vehicles = await db.collection("vehicles").find().toArray();
     const now = new Date();
 
     const formatted = vehicles.map((v) => {
       let parkedDuration = "N/A";
-      const start = new Date(v.checkInTime);
-      const end = v.status === "Parked" ? now : new Date(v.checkOutTime);
 
-      if (v.checkInTime && (v.status === "Parked" || v.checkInTime)) {
+      if (v.checkInTime) {
+        const start = new Date(v.checkInTime);
+        
+        const end = (v.status === "Exited" && v.checkOutTime) 
+          ? new Date(v.checkOutTime) 
+          : now;
+
         const diffMs = end - start;
         const hours = Math.floor(diffMs / 3600000);
         const minutes = Math.floor((diffMs % 3600000) / 60000);
+        
         parkedDuration = `${hours}h ${minutes}m`;
       }
 
-      return {
-        ...v,
-        parkedDuration
-      };
+      return { ...v, parkedDuration };
     });
 
     res.json(formatted);
@@ -31,6 +32,24 @@ export const getVehicles = async (req, res) => {
     res.status(500).json({ message: "Failed to fetch vehicles" });
   }
 };
+
+export const updateVehicle = async (req, res) => {
+  try {
+    const db = req.app.locals.db;
+    const { id } = req.params;
+    const { plate, slot } = req.body;
+
+    await db.collection("vehicles").updateOne(
+      { _id: new ObjectId(id) },
+      { $set: { plate, slot } }
+    );
+    res.json({message: "Updated Successfully"});    
+  } 
+  catch (err) {
+    console.error(err);
+    res.status(500).json({message: "Update failed"});
+  }
+}
 
 export const checkInVehicle = async (req, res) => {
   try {
