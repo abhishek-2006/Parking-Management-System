@@ -4,13 +4,12 @@ import {
     FaTrashAlt, FaCar, FaClock, FaHistory, FaUndo
 } from "react-icons/fa";
 import Navbar from "../components/Navbar";
+import "animate.css"; //
 
 const Vehicles = () => {
     const [vehicles, setVehicles] = useState([]);
     const [searchTerm, setSearchTerm] = useState("");
     const [filterType, setFilterType] = useState("All Types");
-    
-    // Edit States
     const [editingId, setEditingId] = useState(null);
     const [editData, setEditData] = useState({ plate: "", slot: "" });
 
@@ -53,17 +52,8 @@ const Vehicles = () => {
 
     const handleCheckout = async (id) => {
         const vehicle = vehicles.find(v => v._id === id);
-        if (!vehicle) {
-            alert("Vehicle not found");
-            return;
-        }
-        const confirmMessage = `
-            Confirm Checkout for ${vehicle.plate}?
-            -----------------------------
-            Slot: ${vehicle.slot}
-            Total Duration: ${vehicle.parkedDuration}
-        `;
-        
+        if (!vehicle) return alert("Vehicle not found");
+        const confirmMessage = `Confirm Checkout for ${vehicle.plate}?\nSlot: ${vehicle.slot}\nDuration: ${vehicle.parkedDuration}`;
         if (!window.confirm(confirmMessage)) return;
         try {
             const res = await fetch(`http://localhost:5000/api/checkout/${id}`, { method: "PUT" });
@@ -76,12 +66,8 @@ const Vehicles = () => {
 
     const handleRemove = async (id) => {
         const vehicle = vehicles.find(v => v._id === id);
-        if (!vehicle) {
-            alert("Vehicle not found");
-            return;
-        }
-        const confirmMessage = `Confirm Removal of ${vehicle.plate} from records? This action cannot be undone.`;
-        if (!window.confirm(confirmMessage)) return;
+        if (!vehicle) return alert("Vehicle not found");
+        if (!window.confirm(`Confirm Removal of ${vehicle.plate}? This cannot be undone.`)) return;
         try {
             const res = await fetch(`http://localhost:5000/api/delete/${id}`, { method: "DELETE" });
             if (res.ok) fetchVehicles();
@@ -93,13 +79,8 @@ const Vehicles = () => {
 
     const handleUndoCheckout = async (id) => {
         const vehicle = vehicles.find(v => v._id === id);
-        if (!vehicle) {
-            alert("Vehicle not found");
-            return;
-        }
-        const confirmMessage = `Confirm Undo Checkout for ${vehicle.plate}?`;
-        if (!window.confirm(confirmMessage)) return;
-
+        if (!vehicle) return alert("Vehicle not found");
+        if (!window.confirm(`Undo Checkout for ${vehicle.plate}?`)) return;
         try {
             const res = await fetch(`http://localhost:5000/api/undo/${id}`, { method: "PUT" });
             if (res.ok) fetchVehicles();
@@ -126,39 +107,37 @@ const Vehicles = () => {
     );
 
     return (
-        <div className="colorful-bg min-h-screen transition-colors duration-500 pb-12">
+        <div className="colorful-bg min-h-screen transition-colors duration-500 pb-24">
             <Navbar />
             
-            <main className="max-w-7xl mx-auto px-6 pt-8 animate-in fade-in duration-700">
-                {/* Header Section */}
-                <div className="flex flex-col md:flex-row justify-between items-end mb-10 gap-6">
+            <main className="max-w-7xl mx-auto px-6 pt-8 overflow-hidden">
+                {/* Header Section - Fades Down */}
+                <div className="animate__animated animate__fadeInDown flex flex-col md:flex-row justify-between items-end mb-10 gap-6">
                     <div className="flex items-center gap-5">
-                        <img src="/src/assets/favicon.png" alt="Logo" className="w-16 h-16 drop-shadow-2xl" />
+                        <img src="/src/assets/favicon.png" alt="Logo" className="animate__animated animate__pulse animate__infinite animate__slow w-16 h-16 drop-shadow-2xl" />
                         <div>
-                            <h1 className="text-4xl font-black bg-gradient-to-r from-blue-600 to-cyan-500 bg-clip-text text-transparent">
+                            <h1 className="text-4xl font-black bg-gradient-to-r from-blue-600 to-cyan-500 bg-clip-text text-transparent tracking-tighter">
                                 Vehicle Management
                             </h1>
-                            <p className="text-slate-500 dark:text-slate-400 font-bold tracking-widest uppercase text-xs">
+                            <p className="text-slate-500 dark:text-slate-400 font-bold tracking-widest uppercase text-[10px]">
                                 Historical & Active Sessions
                             </p>
                         </div>
                     </div>
                 </div>
 
-                {/* Filters Section */}
-                <div className="glass-card rounded-[2rem] p-6 mb-10 flex flex-col md:flex-row gap-4">
+                {/* Filters Section - Slides In Right */}
+                <div className="animate__animated animate__fadeInRight glass-card rounded-[2.5rem] p-6 mb-10 flex flex-col md:flex-row gap-4">
                     <div className="relative grow">
-                        <FaSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
+                        <FaSearch className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400" />
                         <input
-                            type="text"
-                            id="search"
-                            placeholder="Search by license plate..."
-                            className="w-full pl-12 pr-6 py-4 bg-white/50 dark:bg-slate-800/50 border-none rounded-2xl outline-none font-bold dark:text-white transition-all focus:ring-2 focus:ring-blue-500"
+                            type="text" placeholder="Search by license plate..."
+                            className="w-full pl-14 pr-6 py-4 bg-white/50 dark:bg-slate-800/50 rounded-2xl outline-none font-bold dark:text-white border-none focus:ring-2 focus:ring-blue-500 transition-all"
                             onChange={(e) => setSearchTerm(e.target.value)}
                         />
                     </div>
                     <select 
-                        className="px-6 py-4 bg-white/50 dark:bg-slate-800/50 border-none rounded-2xl outline-none font-bold dark:text-white cursor-pointer transition-all focus:ring-2 focus:ring-blue-500"
+                        className="px-8 py-4 bg-white/50 dark:bg-slate-800/50 rounded-2xl outline-none font-bold dark:text-white cursor-pointer transition-all border-none focus:ring-2 focus:ring-blue-500"
                         onChange={(e) => setFilterType(e.target.value)}
                     >
                         <option value="All Types">All Categories</option>
@@ -168,134 +147,71 @@ const Vehicles = () => {
                     </select>
                 </div>
 
-                {/* Data Table */}
-                <div className="glass-card rounded-[2.5rem] overflow-hidden shadow-2xl border-none">
+                {/* Data Table - Slides Up */}
+                <div className="animate__animated animate__fadeInUp animate__delay-1s glass-card rounded-[3rem] overflow-hidden shadow-2xl border-none mb-12">
                     <div className="overflow-x-auto">
-                        <table className="w-full text-left border-collapse">
+                        <table className="w-full text-center border-collapse">
                             <thead>
-                                <tr className="bg-white/30 dark:bg-slate-800/30 text-slate-400 text-xs font-black uppercase tracking-widest">
-                                    <th className="px-8 py-6 text-center">License Plate</th>
-                                    <th className="px-6 py-6 text-center">Slot ID</th>
-                                    <th className="px-6 py-6 text-center">Category</th>
-                                    <th className="px-6 py-6 text-center">Status</th>
-                                    <th className="px-6 py-6 text-center">Duration</th>
-                                    <th className="px-8 py-6 text-center">Actions</th>
+                                <tr className="bg-white/30 dark:bg-slate-800/30 text-slate-400 text-[10px] font-black uppercase tracking-[0.2em]">
+                                    <th className="px-8 py-6">License Plate</th>
+                                    <th className="px-6 py-6">Slot ID</th>
+                                    <th className="px-6 py-6">Category</th>
+                                    <th className="px-6 py-6">Status</th>
+                                    <th className="px-6 py-6">Duration</th>
+                                    <th className="px-8 py-6">Actions</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-white/10 dark:divide-slate-800">
                                 {filteredVehicles.map((v) => (
-                                    <tr key={v._id} className="hover:bg-indigo-50/50 dark:hover:bg-indigo-900/10 transition-colors group">
-                                        <td className="px-8 py-6 text-center">
+                                    <tr key={v._id} className="animate__animated animate__fadeIn hover:bg-indigo-50/50 dark:hover:bg-indigo-900/10 transition-colors group">
+                                        <td className="px-8 py-6">
                                             {editingId === v._id ? (
-                                                <input 
-                                                    className="w-full bg-white dark:bg-slate-800 border-2 border-blue-500 rounded-xl px-3 py-2 outline-none font-black dark:text-white"
-                                                    value={editData.plate}
-                                                    onChange={(e) => setEditData({...editData, plate: e.target.value.toUpperCase()})}
-                                                />
+                                                <input className="w-full bg-white dark:bg-slate-800 border-2 border-blue-500 rounded-xl px-3 py-2 outline-none font-black dark:text-white" value={editData.plate} onChange={(e) => setEditData({...editData, plate: e.target.value.toUpperCase()})} />
                                             ) : (
-                                                <span className="font-black text-indigo-600 dark:text-cyan-400 text-lg">{v.plate}</span>
+                                                <span className="font-black text-indigo-600 dark:text-cyan-400 text-lg tracking-tight">{v.plate}</span>
                                             )}
                                         </td>
-                                        <td className="px-6 py-6 text-center">
+                                        <td className="px-6 py-6">
                                             {editingId === v._id ? (
-                                                <input 
-                                                    className="w-24 bg-white dark:bg-slate-800 border-2 border-blue-500 rounded-xl px-3 py-2 outline-none font-mono font-black dark:text-white"
-                                                    value={editData.slot}
-                                                    onChange={(e) => setEditData({...editData, slot: e.target.value.toUpperCase()})}
-                                                />
+                                                <input className="w-24 bg-white dark:bg-slate-800 border-2 border-blue-500 rounded-xl px-3 py-2 outline-none font-mono font-black dark:text-white" value={editData.slot} onChange={(e) => setEditData({...editData, slot: e.target.value.toUpperCase()})} />
                                             ) : (
-                                                <span className={`px-4 py-2 rounded-xl text-sm font-mono font-black border 
-                                                    ${v.slot.startsWith('A') 
-                                                    ? "bg-cyan-50 text-cyan-700 border-cyan-100 dark:bg-cyan-900/20 dark:text-cyan-300" 
-                                                    : "bg-purple-50 text-purple-700 border-purple-100 dark:bg-purple-900/20 dark:text-purple-300"
-                                                    }`}
-                                                >
+                                                <span className={`px-4 py-2 rounded-xl text-xs font-mono font-black border ${v.slot.startsWith('A') ? "bg-cyan-50 text-cyan-700 border-cyan-100 dark:bg-cyan-900/20 dark:text-cyan-300" : "bg-purple-50 text-purple-700 border-purple-100 dark:bg-purple-900/20 dark:text-purple-300"}`}>
                                                     {v.slot}
                                                 </span>
                                             )}
                                         </td>
-                                        <td className="px-6 py-6 text-center">
-                                            <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest shadow-sm ${getTypeStyles(v.type)}`}>
+                                        <td className="px-6 py-6">
+                                            <span className={`px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest shadow-sm ${getTypeStyles(v.type)}`}>
                                                 {v.type}
                                             </span>
                                         </td>
-                                        <td className="px-6 py-6 text-center">
-                                            <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest ${
-                                                v.status === "Parked" 
-                                                ? "bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300"
-                                                : "bg-red-100 text-red-700 dark:bg-red-800 dark:text-red-300"
-                                            }`}>
-                                                {v.status}
+                                        <td className="px-6 py-6">
+                                            <span className={`px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest ${v.status === "Parked" ? "bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300" : "bg-red-100 text-red-700 dark:bg-red-800 dark:text-red-300"}`}>
+                                                {v.status === "Parked" ? "Active" : "Settled"}
                                             </span>
                                         </td>
-                                        <td className="px-6 py-6 text-center">
-                                            <div className={`flex items-center justify-center gap-2 font-black text-sm ${
-                                                v.status === "Parked" 
-                                                ? "text-indigo-600 dark:text-cyan-400" 
-                                                : "text-slate-400 dark:text-slate-500"
-                                            }`}>
-                                                {v.status === "Parked" ? (
-                                                <FaClock className="animate-pulse text-emerald-500" />
-                                                ) : (
-                                                <FaHistory className="opacity-70" />
-                                                )}
-                                                
-                                                <span>
-                                                {v.parkedDuration || "0h 0m"}
-                                                </span>
+                                        <td className="px-6 py-6">
+                                            <div className={`flex items-center justify-center gap-2 font-black text-xs ${v.status === "Parked" ? "text-indigo-600 dark:text-cyan-400" : "text-slate-400"}`}>
+                                                {v.status === "Parked" ? <FaClock className="animate-pulse text-emerald-500" /> : <FaHistory className="opacity-70" />}
+                                                <span>{v.parkedDuration || "0h 0m"}</span>
                                             </div>
                                         </td>
-                                        <td className="px-8 py-6 text-center">
-                                            <div className="flex justify-end gap-3">
+                                        <td className="px-8 py-6">
+                                            <div className="flex justify-center gap-2">
                                                 {editingId === v._id ? (
                                                     <>
-                                                        <button 
-                                                            onClick={() => handleSaveEdit(v._id)} 
-                                                            className="p-3 bg-emerald-500 text-white rounded-xl hover:bg-emerald-600 transition-all shadow-lg shadow-emerald-200 dark:shadow-none"
-                                                        >
-                                                            <FaCheck />
-                                                        </button>
-                                                        <button 
-                                                            onClick={() => setEditingId(null)} 
-                                                            className="p-3 bg-slate-400 text-white rounded-xl hover:bg-slate-500 transition-all"
-                                                        >
-                                                            <FaTimes />
-                                                        </button>
+                                                        <button onClick={() => handleSaveEdit(v._id)} className="p-3 bg-emerald-500 text-white rounded-xl shadow-lg"><FaCheck /></button>
+                                                        <button onClick={() => setEditingId(null)} className="p-3 bg-slate-400 text-white rounded-xl"><FaTimes /></button>
                                                     </>
                                                 ) : (
                                                     <>
-                                                        <button 
-                                                            onClick={() => startEditing(v)} 
-                                                            className="p-3 text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-xl transition-all"
-                                                            title="Edit Details"
-                                                        >
-                                                            <FaEdit size={18} />
-                                                        </button>
-                                                        {v.status === "Parked" && (
-                                                        <button 
-                                                            onClick={() => handleCheckout(v._id)} 
-                                                            className="p-3 text-green-500 hover:bg-green-50 dark:hover:bg-green-900/20 rounded-xl transition-all"
-                                                            title="Check Out Vehicle"
-                                                        >
-                                                            <FaCheck size={18} />
-                                                        </button>
-                                                        )} {
-                                                        <button 
-                                                            onClick={() => handleUndoCheckout(v._id)}
-                                                            className="p-3 text-amber-500 hover:bg-amber-50 dark:hover:bg-amber-900/20 rounded-xl transition-all"
-                                                            title="Undo Check Out"
-                                                        >
-                                                            <FaUndo size={18} />
-                                                        </button>
-                                                        }
-                                                        
-                                                        <button 
-                                                            onClick={() => handleRemove(v._id)} 
-                                                            className="p-3 text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/20 rounded-xl transition-all"
-                                                            title="Remove Record"
-                                                        >
-                                                            <FaTrashAlt size={18} />
-                                                        </button>
+                                                        <button onClick={() => startEditing(v)} className="p-3 text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-xl transition-all"><FaEdit size={16} /></button>
+                                                        {v.status === "Parked" ? (
+                                                            <button onClick={() => handleCheckout(v._id)} className="p-3 text-emerald-500 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 rounded-xl transition-all"><FaCheck size={16} /></button>
+                                                        ) : (
+                                                            <button onClick={() => handleUndoCheckout(v._id)} className="p-3 text-amber-500 hover:bg-amber-50 dark:hover:bg-amber-900/20 rounded-xl transition-all"><FaUndo size={16} /></button>
+                                                        )}
+                                                        <button onClick={() => handleRemove(v._id)} className="p-3 text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/20 rounded-xl transition-all"><FaTrashAlt size={16} /></button>
                                                     </>
                                                 )}
                                             </div>
@@ -305,12 +221,6 @@ const Vehicles = () => {
                             </tbody>
                         </table>
                     </div>
-                    {filteredVehicles.length === 0 && (
-                        <div className="py-20 text-center">
-                            <FaCar className="text-6xl text-slate-200 dark:text-slate-800 mx-auto mb-4" />
-                            <p className="text-slate-400 font-bold uppercase tracking-widest text-sm">No vehicles found</p>
-                        </div>
-                    )}
                 </div>
             </main>
         </div>
