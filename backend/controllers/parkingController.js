@@ -108,7 +108,7 @@ export const checkOutVehicle = async (req, res) => {
     const diffMs = checkOutTime - checkInTime;
     const totalHours = Math.max(0.5, Math.ceil(diffMs / 3600000));
 
-    const rates = { Motorcycle: 10, Hatchback: 15, Sedan: 20, SUV: 30, Van: 35, Coupe: 40, Convertible: 80, Truck: 60 };
+    const rates = { Motorcycle: 10, Hatchback: 20, Sedan: 30, SUV: 40, Van: 40, Coupe: 50, Convertible: 100, Truck: 80 };
     const hourlyRate = rates[vehicle.type] || 20;
     const totalRevenue = totalHours * hourlyRate;
 
@@ -148,3 +148,30 @@ export const deleteVehicle = async (req, res) => {
     res.status(500).json({ message: "Deletion failed" });
   }
 };
+
+export const undoCheckOut = async (req, res) => {
+  try {    
+    const db = req.app.locals.db;
+    const { id } = req.params;
+    const vehicle = await db.collection("vehicles").findOne({ _id: new ObjectId(id) });
+
+    if (!vehicle || vehicle.status !== "Exited") {
+      return res.status(404).json({ message: "Vehicle not found or not exited" });
+    }
+    await db.collection("vehicles").updateOne(
+      { _id: new ObjectId(id) },
+      {
+        $set: {
+          status: "Parked",
+          checkOutTime: null,
+          parkedDuration: null,
+          revenue: null
+        }
+      }
+    );
+    res.json({ message: "Vehicle check-out undone successfully" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Undo check-out failed" });
+  }
+}

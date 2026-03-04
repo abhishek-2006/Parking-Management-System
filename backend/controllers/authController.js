@@ -13,7 +13,11 @@ export const login = async (req, res) => {
         if (user.password !== password)
             return res.status(401).json({ message: "Invalid Login Credentials" });
 
-        return res.json({ message: "Login success", user: { email: user.email } });
+        return res.json({ 
+            message: "Login success", 
+            token: "authentication_session_active",
+            user: { email: user.email } 
+        });
     } catch (err) {
         console.log(err);
         res.status(500).json({ message: "Server Error" });

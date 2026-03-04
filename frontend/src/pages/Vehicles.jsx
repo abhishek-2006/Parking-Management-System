@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { 
     FaSearch, FaEdit, FaCheck, FaTimes, 
-    FaTrashAlt, FaCar, FaClock, FaHistory
+    FaTrashAlt, FaCar, FaClock, FaHistory, FaUndo
 } from "react-icons/fa";
 import Navbar from "../components/Navbar";
 
@@ -75,13 +75,37 @@ const Vehicles = () => {
     };
 
     const handleRemove = async (id) => {
-        if (!window.confirm("Are you sure you want to remove this record?")) return;
+        const vehicle = vehicles.find(v => v._id === id);
+        if (!vehicle) {
+            alert("Vehicle not found");
+            return;
+        }
+        const confirmMessage = `Confirm Removal of ${vehicle.plate} from records? This action cannot be undone.`;
+        if (!window.confirm(confirmMessage)) return;
         try {
             const res = await fetch(`http://localhost:5000/api/delete/${id}`, { method: "DELETE" });
             if (res.ok) fetchVehicles();
         } catch (err) {
             console.error(err);
             alert("Failed to remove record");
+        }
+    };
+
+    const handleUndoCheckout = async (id) => {
+        const vehicle = vehicles.find(v => v._id === id);
+        if (!vehicle) {
+            alert("Vehicle not found");
+            return;
+        }
+        const confirmMessage = `Confirm Undo Checkout for ${vehicle.plate}?`;
+        if (!window.confirm(confirmMessage)) return;
+
+        try {
+            const res = await fetch(`http://localhost:5000/api/undo/${id}`, { method: "PUT" });
+            if (res.ok) fetchVehicles();
+        } catch (err) {
+            console.error(err);
+            alert("Failed to undo checkout");
         }
     };
 
@@ -247,14 +271,24 @@ const Vehicles = () => {
                                                         >
                                                             <FaEdit size={18} />
                                                         </button>
-                                                        {/*Checkout Button*/}
-                                                        <button
-                                                            onClick={() => handleCheckout(v._id)}
+                                                        {v.status === "Parked" && (
+                                                        <button 
+                                                            onClick={() => handleCheckout(v._id)} 
                                                             className="p-3 text-green-500 hover:bg-green-50 dark:hover:bg-green-900/20 rounded-xl transition-all"
                                                             title="Check Out Vehicle"
                                                         >
                                                             <FaCheck size={18} />
                                                         </button>
+                                                        )} {
+                                                        <button 
+                                                            onClick={() => handleUndoCheckout(v._id)}
+                                                            className="p-3 text-amber-500 hover:bg-amber-50 dark:hover:bg-amber-900/20 rounded-xl transition-all"
+                                                            title="Undo Check Out"
+                                                        >
+                                                            <FaUndo size={18} />
+                                                        </button>
+                                                        }
+                                                        
                                                         <button 
                                                             onClick={() => handleRemove(v._id)} 
                                                             className="p-3 text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/20 rounded-xl transition-all"

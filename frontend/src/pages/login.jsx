@@ -1,13 +1,20 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { FaEye, FaEyeSlash, FaEnvelope, FaLock, FaParking } from "react-icons/fa";
 import { useNavigate, Link } from "react-router-dom";
 import "../index.css";
+import { isAuthenticated } from "../utils/auth";
 
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if(isAuthenticated()) {
+      navigate("/dashboard");
+    }
+  }, [navigate]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -17,10 +24,12 @@ const Login = () => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
       });
+
       const data = await res.json();
+      
       if (!res.ok) return alert(data.message);
-      localStorage.setItem("user", JSON.stringify(data.user));
-      navigate("/dashboard");
+        localStorage.setItem("token", data.token);
+        navigate("/dashboard");
     } catch (err) {
       console.error(err);
       alert("Backend not responding");

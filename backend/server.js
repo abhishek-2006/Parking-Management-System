@@ -9,7 +9,6 @@ import parkingRoutes from "./routes/parking.js";
 dotenv.config();
 
 process.env.TZ = "Asia/Kolkata"; 
-
 console.log("System Timezone set to:", new Date().toString());
 
 const app = express();
