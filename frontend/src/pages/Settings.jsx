@@ -1,15 +1,36 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Navbar from "../components/Navbar";
 import { toggleTheme, getInitialTheme } from "../utils/theme";
 import { 
     FaUserCog, FaShieldAlt, FaSave, 
-    FaLock, FaMoon, FaSun, FaGlobe, FaPalette 
+    FaLock, FaMoon, FaSun, FaPalette ,
+    FaRupeeSign, FaMotorcycle, FaCar, FaTruckMoving, FaBus
 } from "react-icons/fa";
-import "animate.css"; //
+import "animate.css";
 
 const Settings = () => {
     const [activeTab, setActiveTab] = useState("Account");
     const [isDark, setIsDark] = useState(getInitialTheme());
+    const [rates, setRates] = useState({
+        Motorcycle: 10, Hatchback: 20, Sedan: 30, SUV: 40, 
+        Van: 40, Coupe: 50, Convertible: 100, Truck: 80, Bus: 100
+    });
+    const [updating, setUpdating] = useState(false);
+
+    useEffect(() => {
+        const fetchRates = async () => {
+            try {
+                const res = await fetch("http://localhost:5000/api/rates");
+                if (res.ok) {
+                    const data = await res.json();
+                    setRates(data);
+                }
+            } catch (error) {
+                console.error("Error fetching rates:", error);
+            }
+        };
+        fetchRates();
+    },[]);
 
     const handleThemeChange = () => {
         const newStatus = !isDark;
@@ -17,11 +38,41 @@ const Settings = () => {
         toggleTheme(newStatus);
     };
 
+    const handleRateChange = async () => {
+        setUpdating(true);
+        try {
+            const res = await fetch("http://localhost:5000/api/rates", {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({rates })
+            });
+            if (res.ok) {
+                alert("Rates updated successfully");
+            } else {
+                throw new Error("Failed to update rates");
+            }
+        } catch (err) {
+            alert("Error updating rates: " + err.message);
+        } finally {
+            setUpdating(false);
+        }
+    };
+
     const tabs = [
         { name: "Account", icon: <FaUserCog /> },
+        { name: "Rates", icon: <FaRupeeSign /> },
         { name: "Security", icon: <FaLock /> },
         { name: "Preferences", icon: <FaPalette /> }
     ];
+
+    const getVehicleIcon = (type) => {
+        switch(type) {
+            case "Motorcycle": return <FaMotorcycle/>;
+            case "Truck": return <FaTruckMoving/>;
+            case "Bus": return <FaBus/>;
+            default: return <FaCar/>;
+        }
+    };
 
     return (
         <div className="colorful-bg min-h-screen transition-colors duration-500 pb-24">
@@ -32,7 +83,7 @@ const Settings = () => {
                 {/* Header Section - Fades Down */}
                 <div className="animate__animated animate__fadeInDown flex items-center gap-5 mb-10">
                     <div className="p-4 bg-white dark:bg-slate-800 rounded-3xl shadow-lg border border-indigo-100 dark:border-slate-700">
-                        <img src="/src/assets/favicon.png" alt="Logo" className="animate__animated animate__pulse animate__infinite animate__slow w-12 h-12" />
+                        <img src="/src/assets/favicon.png" alt="Logo" className="w-12 h-12" />
                     </div>
                     <div>
                         <h1 className="text-4xl font-black bg-gradient-to-r from-indigo-600 to-blue-500 bg-clip-text text-transparent tracking-tighter">
@@ -70,7 +121,7 @@ const Settings = () => {
 
                         {/* Security Tip - Subtle Pulse */}
                         <div className="animate__animated animate__fadeInLeft animate__delay-1s glass-card rounded-[2.5rem] p-6 bg-gradient-to-br from-indigo-600 to-blue-700 text-white border-none shadow-xl">
-                            <FaShieldAlt className="animate__animated animate__flash animate__infinite animate__slower text-3xl mb-4 opacity-50" />
+                            <FaShieldAlt className="text-3xl mb-4 opacity-50" />
                             <h4 className="font-black text-lg mb-2 tracking-tight">Security Tip</h4>
                             <p className="text-[10px] font-bold text-indigo-100 leading-relaxed uppercase tracking-wide">
                                 Enable two-factor authentication to keep your parking data extra secure.
@@ -102,6 +153,47 @@ const Settings = () => {
 
                                 <button className="mt-10 bg-gradient-to-r from-indigo-600 to-blue-600 text-white px-10 py-5 rounded-2xl font-black shadow-xl hover:scale-105 transition-all active:scale-95 flex items-center gap-3 uppercase tracking-widest text-xs">
                                     <FaSave /> Save Profile
+                                </button>
+                            </div>
+                        )}
+
+                        {activeTab === "Rates" && (
+                            <div className="animate__animated animate__zoomIn animate__faster glass-card rounded-[3rem] p-10 shadow-2xl border-none mb-12">
+                                <div className="flex items-center gap-4 mb-8">
+                                    <div className="p-3 bg-emerald-50 dark:bg-emerald-900/30 rounded-2xl">
+                                        <FaRupeeSign className="text-2xl text-emerald-600" />
+                                    </div>
+                                    <h3 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">Rate Management</h3>
+                                </div>
+
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    {Object.keys(rates).map((type) => (
+                                        <div key={type} className="flex items-center justify-between p-6 bg-white/40 dark:bg-slate-800/40 rounded-3xl border border-white/20 dark:border-slate-700">
+                                            <div className="flex items-center gap-4">
+                                                <div className="text-slate-400 text-xl">
+                                                    {getVehicleIcon(type)}
+                                                </div>
+                                                <span className="font-black text-slate-900 dark:text-slate-200 uppercase tracking-tighter text-sm">{type}</span>
+                                            </div>
+                                            <div className="flex items-center gap-3">
+                                                <span className="text-slate-400 font-bold">₹</span>
+                                                <input
+                                                    type="number"
+                                                    value={rates[type]}
+                                                    onChange={(e) => setRates({...rates, [type]: parseInt(e.target.value) || 0})}
+                                                    className="w-20 p-2 bg-white dark:bg-slate-900 rounded-2xl outline-none font-black dark:text-white text-center text-blue-600 focus:ring-4 focus:ring-emerald-500/10 transition-all shadow-inner"
+                                                />
+                                                <span className="text-slate-400 text-[10px] font-black uppercase">/hr</span>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                                <button
+                                    onClick={handleRateChange}
+                                    disabled={updating}
+                                    className="mt-10 bg-gradient-to-r from-emerald-600 to-teal-600 text-white px-10 py-5 rounded-2xl font-black shadow-2xl hover:scale-105 transition-all active:scale-95 flex items-center uppercase tracking-widest text-xs"
+                                    >
+                                    {updating ? "Updating..." : <><FaSave /> Save Rates</>}
                                 </button>
                             </div>
                         )}
@@ -155,22 +247,6 @@ const Settings = () => {
                                         <label htmlFor="darkModeToggle" className="relative inline-flex items-center cursor-pointer">
                                             <input type="checkbox" id="darkModeToggle" className="sr-only peer" checked={isDark} onChange={handleThemeChange} />
                                             <div className="w-16 h-9 bg-slate-200 peer-focus:outline-none rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[6px] after:left-[6px] after:bg-white after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-indigo-600"></div>
-                                        </label>
-                                    </div>
-
-                                    <div className="flex items-center justify-between p-8 bg-white/30 dark:bg-slate-800/30 border border-white/20 dark:border-slate-700 rounded-[2.5rem] hover:bg-white/50 transition-colors">
-                                        <div className="flex items-center gap-5">
-                                            <div className="p-4 bg-cyan-100 dark:bg-slate-700 rounded-2xl">
-                                                <FaGlobe className="text-cyan-600 text-xl" />
-                                            </div>
-                                            <div>
-                                                <p className="font-black text-slate-900 dark:text-white uppercase tracking-widest text-xs">Global Search</p>
-                                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tight mt-1">Search active & historical records</p>
-                                            </div>
-                                        </div>
-                                        <label className="relative inline-flex items-center cursor-pointer">
-                                            <input type="checkbox" className="sr-only peer" defaultChecked />
-                                            <div className="w-16 h-9 bg-slate-200 peer-focus:outline-none rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[6px] after:left-[6px] after:bg-white after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-cyan-600"></div>
                                         </label>
                                     </div>
                                 </div>

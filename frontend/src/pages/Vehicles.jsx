@@ -92,11 +92,15 @@ const Vehicles = () => {
 
     const getTypeStyles = (type) => {
         switch (type) {
-            case 'SUV': return 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-300';
             case 'Motorcycle': return 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300';
+            case 'SUV': return 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-300';
             case 'Truck': return 'bg-orange-100 text-orange-700 dark:bg-orange-900/40 dark:text-orange-300';
             case 'Van': return 'bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-300';
             case 'Sedan': return 'bg-sky-100 text-sky-700 dark:bg-sky-900/40 dark:text-sky-300';
+            case 'Bus': return 'bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300';
+            case 'Coupe': return 'bg-pink-100 text-pink-700 dark:bg-pink-900/40 dark:text-pink-300';
+            case 'Hatchback': return 'bg-teal-100 text-teal-700 dark:bg-teal-900/40 dark:text-teal-300';
+            case 'Convertible': return 'bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300';
             default: return 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300';
         }
     };
@@ -141,7 +145,7 @@ const Vehicles = () => {
                         onChange={(e) => setFilterType(e.target.value)}
                     >
                         <option value="All Types">All Categories</option>
-                        {["Motorcycle", "Van", "Hatchback", "Sedan", "Coupe", "SUV", "Convertible", "Truck"].map(t => (
+                        {["Motorcycle", "Van", "Hatchback", "Sedan", "Coupe", "SUV", "Convertible", "Truck", "Bus"].map(t => (
                             <option key={t} value={t}>{t}</option>
                         ))}
                     </select>

@@ -5,7 +5,8 @@ import {
   checkOutVehicle,
   updateVehicle,
   deleteVehicle,
-  undoCheckOut
+  undoCheckOut,
+  editRates
 } from "../controllers/parkingController.js";
 
 const router = express.Router();
@@ -16,5 +17,6 @@ router.put("/checkout/:id", checkOutVehicle);
 router.put("/update/:id", updateVehicle);
 router.delete("/delete/:id", deleteVehicle);
 router.put("/undo/:id", undoCheckOut);
+router.put("/rates", editRates);
 
 export default router;

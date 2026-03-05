@@ -4,7 +4,7 @@ import {
     FaChartLine, FaHistory, FaCheckCircle
 } from "react-icons/fa";
 import Navbar from "../components/Navbar";
-import "animate.css"; //
+import "animate.css";
 
 const Reports = () => {
   const [reports, setReports] = useState([]);

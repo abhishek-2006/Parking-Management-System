@@ -94,7 +94,9 @@ export const checkOutVehicle = async (req, res) => {
     const db = req.app.locals.db;
     const { id } = req.params;
 
-    // 1. Find the vehicle to get its check-in time
+    const settings = await db.collection("settings").findOne({type: "rates"});
+    const rates = { Motorcycle: 10, Hatchback: 20, Sedan: 30, SUV: 40, Van: 40, Coupe: 50, Truck: 80, Convertible: 100, Bus: 100 };
+    const currentRates = settings ? settings.rates : rates; 
     const vehicle = await db.collection("vehicles").findOne({ _id: new ObjectId(id) });
 
     if (!vehicle || vehicle.status !== "Parked") {
@@ -108,8 +110,7 @@ export const checkOutVehicle = async (req, res) => {
     const diffMs = checkOutTime - checkInTime;
     const totalHours = Math.max(0.5, Math.ceil(diffMs / 3600000));
 
-    const rates = { Motorcycle: 10, Hatchback: 20, Sedan: 30, SUV: 40, Van: 40, Coupe: 50, Convertible: 100, Truck: 80 };
-    const hourlyRate = rates[vehicle.type] || 20;
+    const hourlyRate = currentRates[vehicle.type] || 20;
     const totalRevenue = totalHours * hourlyRate;
 
     const hours = Math.floor(diffMs / 3600000);
@@ -173,5 +174,21 @@ export const undoCheckOut = async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Undo check-out failed" });
+  }
+}
+
+export const editRates = async (req, res) => {
+  try {
+    const db = req.app.locals.db;
+    const { rates } = req.body;
+    await db.collection("settings").updateOne(
+      { type: "rates" },
+      { $set: { rates } },
+      { upsert: true }
+    );
+    res.json({ message: "Rates updated successfully" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Failed to update rates" });
   }
 }

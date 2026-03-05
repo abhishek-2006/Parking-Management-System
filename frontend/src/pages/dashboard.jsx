@@ -193,8 +193,8 @@ const Dashboard = () => {
             <form onSubmit={handleCheckIn} className="relative animate__animated animate__zoomIn animate__faster glass-card rounded-[3rem] p-10 w-full max-w-md border border-white/20">
               <div className="flex justify-between items-center mb-8">
                 <div className="flex items-center gap-4">
-                  <div className="p-3 bg-blue-600 rounded-2xl shadow-lg">
-                    <FaParking className="text-white text-2xl" />
+                  <div className="bg-blue-600 rounded-2xl">
+                    <img src="../src/assets/favicon.png" alt="Logo" className="w-14 h-14 animate__animated animate__pulse animate__infinite animate__slow" />
                   </div>
                   <div>
                     <h3 className="text-2xl font-black text-slate-900 dark:text-white tracking-tighter">New Entry</h3>
@@ -218,13 +218,13 @@ const Dashboard = () => {
                 <div>
                   <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">Vehicle Type</label>
                   <select value={formData.type} onChange={(e) => setFormData({...formData, type: e.target.value})} className="w-full p-4 bg-slate-50 dark:bg-slate-800 rounded-2xl outline-none font-bold appearance-none">
-                    {["Motorcycle", "Van", "Hatchback", "Sedan", "SUV", "Truck"].map(t => <option key={t} value={t}>{t}</option>)}
+                    {["Motorcycle", "Van", "Hatchback", "Sedan", "SUV", "Coupe", "Truck", "Bus", "Convertible"].map(t => <option key={t} value={t}>{t}</option>)}
                   </select>
                 </div>
               </div>
 
               <button type="submit" disabled={loading} className="w-full mt-8 bg-blue-600 hover:bg-blue-700 text-white font-black py-5 rounded-2xl shadow-xl active:scale-95 transition-all">
-                {loading ? "Processing..." : "CONFIRM ASSIGNMENT"}
+                {loading ? "Processing..." : "Confirm Check-In"}
               </button>
             </form>
           </div>
