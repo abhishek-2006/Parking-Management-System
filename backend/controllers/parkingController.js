@@ -94,9 +94,12 @@ export const checkOutVehicle = async (req, res) => {
     const db = req.app.locals.db;
     const { id } = req.params;
 
-    const settings = await db.collection("settings").findOne({type: "rates"});
-    const rates = { Motorcycle: 10, Hatchback: 20, Sedan: 30, SUV: 40, Van: 40, Coupe: 50, Truck: 80, Convertible: 100, Bus: 100 };
-    const currentRates = settings ? settings.rates : rates; 
+    const settings = await db.collection("settings").findOne({ type: "rates" });
+    const defaultRates = { Motorcycle: 10, Hatchback: 20, Sedan: 30, SUV: 40, Van: 40, Coupe: 50, Convertible: 100, Truck: 80, Bus: 100 };
+    
+    // Use Nullish Coalescing to ensure currentRates is never undefined
+    const currentRates = settings?.rates ?? defaultRates; 
+
     const vehicle = await db.collection("vehicles").findOne({ _id: new ObjectId(id) });
 
     if (!vehicle || vehicle.status !== "Parked") {
@@ -108,8 +111,10 @@ export const checkOutVehicle = async (req, res) => {
     const checkInTime = new Date(vehicle.checkInTime);
     
     const diffMs = checkOutTime - checkInTime;
+    // Rounding up to the nearest hour, minimum 0.5 for very short stays
     const totalHours = Math.max(0.5, Math.ceil(diffMs / 3600000));
 
+    // Defensive check: if vehicle.type isn't in currentRates, default to 20
     const hourlyRate = currentRates[vehicle.type] || 20;
     const totalRevenue = totalHours * hourlyRate;
 
@@ -117,7 +122,7 @@ export const checkOutVehicle = async (req, res) => {
     const minutes = Math.floor((diffMs % 3600000) / 60000);
     const finalDuration = `${hours}h ${minutes}m`;
 
-    // 3. Update the record with the static duration
+    // 3. Update the record
     await db.collection("vehicles").updateOne(
       { _id: new ObjectId(id) },
       {
@@ -130,9 +135,14 @@ export const checkOutVehicle = async (req, res) => {
       }
     );
 
-    res.json({ message: "Vehicle checked out successfully", duration: finalDuration });
+    // IMPORTANT: Return revenue so the frontend alert can display it!
+    res.json({ 
+      message: "Vehicle checked out successfully", 
+      duration: finalDuration,
+      revenue: totalRevenue 
+    });
   } catch (err) {
-    console.error(err);
+    console.error("Checkout Error:", err);
     res.status(500).json({ message: "Check-out failed" });
   }
 };

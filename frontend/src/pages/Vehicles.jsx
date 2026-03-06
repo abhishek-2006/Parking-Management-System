@@ -52,12 +52,24 @@ const Vehicles = () => {
 
     const handleCheckout = async (id) => {
         const vehicle = vehicles.find(v => v._id === id);
-        if (!vehicle) return alert("Vehicle not found");
+        
+        if (!vehicle) {
+            return alert("Vehicle not found");
+        }
+
         const confirmMessage = `Confirm Checkout for ${vehicle.plate}?\nSlot: ${vehicle.slot}\nDuration: ${vehicle.parkedDuration}`;
         if (!window.confirm(confirmMessage)) return;
         try {
-            const res = await fetch(`http://localhost:5000/api/checkout/${id}`, { method: "PUT" });
-            if (res.ok) fetchVehicles();
+            const res = await fetch(`http://localhost:5000/api/checkout/${id}`, { 
+                method: "PUT" 
+            });
+            const data = await res.json();
+            if (!res.ok) {
+                return alert(data.message || "Failed to check out vehicle");
+        }
+
+        // Show the operator the final revenue calculated by the Pricing Engine
+        alert(`Checkout Successful!\nVehicle: ${vehicle.plate}\nTotal Revenue: ₹${data.revenue}`);
         } catch (err) {
             console.error(err);
             alert("Failed to check out vehicle");

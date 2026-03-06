@@ -1,7 +1,7 @@
 import React, { useEffect, useState  } from "react";
 import { FaCar, FaParking, FaCheckCircle, FaPlus, FaSearch, FaTimes, FaMoneyBillWave } from "react-icons/fa";
 import Navbar from "../components/Navbar.jsx";
-import Footer from "../components/Footer.jsx";
+
 import "animate.css"; 
 
 const Dashboard = () => {
@@ -67,11 +67,16 @@ const Dashboard = () => {
     if (!window.confirm(confirmMessage)) return;
 
     try {
-      const res = await fetch(`http://localhost:5000/api/checkout/${id}`, { method: "PUT" });
-      const data = await res.json();
-      if (!res.ok) return alert(data.message);
+      const res = await fetch(`http://localhost:5000/api/checkout/${id}`, { 
+        method: "PUT" 
+      });
 
-      alert("Vehicle checked out successfully!");
+      const data = await res.json();
+      if (!res.ok) {
+        return alert(data.message || "Checkout failed");
+      }
+
+      alert(`Vehicle checked out successfully!\nTotal Bill: ₹${data.revenue}`);
       fetchData();
     } catch (err) {
       console.error("Check-out error:", err);
