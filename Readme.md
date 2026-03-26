@@ -33,7 +33,6 @@
 │   │   ├── 📁 utils
 │   │   │   ├── 📄 auth.js
 │   │   │   └── 📄 theme.js
-│   │   ├── 🎨 App.css
 │   │   ├── 📄 App.jsx
 │   │   ├── 🎨 index.css
 │   │   └── 📄 main.jsx
