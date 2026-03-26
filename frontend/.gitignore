@@ -13,8 +13,6 @@ dist-ssr
 *.local
 .env
 .env.*.local
-backend/.env
-backend/.env.*.local
 db_backup
 
 # Editor directories and files
