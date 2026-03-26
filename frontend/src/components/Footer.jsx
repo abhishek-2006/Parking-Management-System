@@ -56,7 +56,7 @@ const Footer = () => {
                <Link to="https://github.com/abhishek-2006" target="_blank" rel="noopener noreferrer">
                  <FaGithub className="text-slate-400 hover:text-slate-900 dark:hover:text-white cursor-pointer transition-colors" />
                </Link>
-               <Link to="https://www.linkedin.com/in/abhishek-shah-051" target="_blank" rel="noopener noreferrer">
+               <Link to="https://www.linkedin.com/in/abhishekshah-dev" target="_blank" rel="noopener noreferrer">
                  <FaLinkedin className="text-slate-400 hover:text-slate-900 dark:hover:text-white cursor-pointer transition-colors" />
                </Link>
                <Link to="mailto:shahabhishek051@gmail.com" target="_blank" rel="noopener noreferrer">
