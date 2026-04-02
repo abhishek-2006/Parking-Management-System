@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
-import { FaEye, FaEyeSlash, FaEnvelope, FaLock, FaParking } from "react-icons/fa";
+import { FaEye, FaEyeSlash, FaEnvelope, FaLock } from "react-icons/fa";
 import { useNavigate, Link } from "react-router-dom";
-import "animate.css"; // Import the library
+import "animate.css";
 import "../index.css";
-import { isAuthenticated } from "../utils/auth"; //
+import { isAuthenticated } from "../utils/auth";
 
 const Login = () => {
   const [email, setEmail] = useState("");
