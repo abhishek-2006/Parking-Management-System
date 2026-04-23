@@ -1,0 +1,17 @@
+[{
+  "_id": {
+    "$oid": "69a90845fee1a1f570195889"
+  },
+  "type": "rates",
+  "values": {
+    "Motorcycle": 10,
+    "Hatchback": 20,
+    "Sedan": 30,
+    "SUV": 40,
+    "Van": 40,
+    "Coupe": 50,
+    "Truck": 80,
+    "Bus": 100,
+    "Convertible": 100
+  }
+}]

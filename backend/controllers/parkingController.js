@@ -3,7 +3,7 @@ import { ObjectId } from "mongodb";
 export const getVehicles = async (req, res) => {
   try {
     const db = req.app.locals.db;
-    const vehicles = await db.collection("vehicles").find().toArray();
+    const vehicles = await db.collection("parkingRecords").find().toArray();
     const now = new Date();
 
     const formatted = vehicles.map((v) => {
@@ -43,7 +43,7 @@ export const updateVehicle = async (req, res) => {
     const { id } = req.params;
     const { plate, slot } = req.body;
 
-    await db.collection("vehicles").updateOne(
+    await db.collection("parkingRecords").updateOne(
       { _id: new ObjectId(id) },
       { $set: { plate, slot } }
     );
@@ -58,7 +58,7 @@ export const updateVehicle = async (req, res) => {
 export const checkInVehicle = async (req, res) => {
   try {
     const db = req.app.locals.db;
-    const vehiclesCollection = db.collection("vehicles");
+    const vehiclesCollection = db.collection("parkingRecords");
 
     const { plate, slot, type } = req.body;
 
@@ -94,13 +94,13 @@ export const checkOutVehicle = async (req, res) => {
     const db = req.app.locals.db;
     const { id } = req.params;
 
-    const settings = await db.collection("settings").findOne({ type: "rates" });
+    const rates = await db.collection("rates").findOne({ type: "rates" });
     const defaultRates = { Motorcycle: 10, Hatchback: 20, Sedan: 30, SUV: 40, Van: 40, Coupe: 50, Convertible: 100, Truck: 80, Bus: 100 };
     
     // Use Nullish Coalescing to ensure currentRates is never undefined
-    const currentRates = settings?.rates ?? defaultRates; 
+    const currentRates = rates?.rates ?? defaultRates; 
 
-    const vehicle = await db.collection("vehicles").findOne({ _id: new ObjectId(id) });
+    const vehicle = await db.collection("parkingRecords").findOne({ _id: new ObjectId(id) });
 
     if (!vehicle || vehicle.status !== "Parked") {
       return res.status(404).json({ message: "Vehicle not found or already exited" });
@@ -123,7 +123,7 @@ export const checkOutVehicle = async (req, res) => {
     const finalDuration = `${hours}h ${minutes}m`;
 
     // 3. Update the record
-    await db.collection("vehicles").updateOne(
+    await db.collection("parkingRecords").updateOne(
       { _id: new ObjectId(id) },
       {
         $set: {
@@ -152,7 +152,7 @@ export const deleteVehicle = async (req, res) => {
     const db = req.app.locals.db;
     const { id } = req.params;
 
-    await db.collection("vehicles").deleteOne({ _id: new ObjectId(id) });
+    await db.collection("parkingRecords").deleteOne({ _id: new ObjectId(id) });
     res.json({ message: "Vehicle record deleted successfully" });
   } catch (err) {
     console.error(err);
@@ -164,12 +164,12 @@ export const undoCheckOut = async (req, res) => {
   try {    
     const db = req.app.locals.db;
     const { id } = req.params;
-    const vehicle = await db.collection("vehicles").findOne({ _id: new ObjectId(id) });
+    const vehicle = await db.collection("parkingRecords").findOne({ _id: new ObjectId(id) });
 
     if (!vehicle || vehicle.status !== "Exited") {
       return res.status(404).json({ message: "Vehicle not found or not exited" });
     }
-    await db.collection("vehicles").updateOne(
+    await db.collection("parkingRecords").updateOne(
       { _id: new ObjectId(id) },
       {
         $set: {
@@ -191,7 +191,7 @@ export const editRates = async (req, res) => {
   try {
     const db = req.app.locals.db;
     const { rates } = req.body;
-    await db.collection("settings").updateOne(
+    await db.collection("rates").updateOne(
       { type: "rates" },
       { $set: { rates } },
       { upsert: true }

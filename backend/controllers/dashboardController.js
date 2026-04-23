@@ -1,7 +1,7 @@
 export const getDashboardStats = async (req, res) => {
   try {
     const db = req.app.locals.db;
-    const vehiclesCollection = db.collection("vehicles");
+    const vehiclesCollection = db.collection("parkingRecords");
     const lot = await db.collection("lots").findOne({ _id: "lot42" });
 
     if (!lot) {
